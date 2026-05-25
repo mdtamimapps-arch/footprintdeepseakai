@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>📍 Footprint Tracker - Live GPS Movement</title>
+    <title>🐾 ফুটপ্রিন্ট ট্র্যাকার - বাংলাদেশ</title>
 
     <!-- Leaflet CSS + JS for OpenStreetMap -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -376,10 +376,10 @@
     <!-- ── Header ── -->
     <div class="header">
         <div class="logo">
-            <span class="paw">🐾</span> Footprint Tracker
+            <span class="paw">🐾</span> ফুটপ্রিন্ট ট্র্যাকার
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-            <span class="header-badge" id="accuracyBadge">⏳ Waiting</span>
+            <span class="header-badge" id="accuracyBadge">📍 প্রস্তুত</span>
             <div class="status-dot" id="statusDot"></div>
         </div>
     </div>
@@ -392,32 +392,32 @@
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-value speed" id="speedVal">0.0</div>
-                <div class="stat-label">⚡ Speed (km/h)</div>
+                <div class="stat-label">⚡ গতি (কিমি/ঘ)</div>
                 <div class="stat-sub" id="speedMph">0.0 mph</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value dist" id="distVal">0</div>
-                <div class="stat-label">📏 Total Distance</div>
-                <div class="stat-sub" id="distMiles">0.00 mi</div>
+                <div class="stat-label">📏 মোট দূরত্ব</div>
+                <div class="stat-sub" id="distMiles">0.00 মাইল</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value time" id="timeVal">00:00</div>
-                <div class="stat-label">⏱ Elapsed</div>
-                <div class="stat-sub" id="segmentInfo">Next: --</div>
+                <div class="stat-label">⏱ সময়</div>
+                <div class="stat-sub" id="segmentInfo">শেষ: --</div>
             </div>
         </div>
         <div class="btn-row">
-            <button class="btn btn-start" id="btnStart" title="Start Tracking">
-                <span class="icon">▶</span> Start
+            <button class="btn btn-start" id="btnStart" title="ট্র্যাকিং শুরু">
+                <span class="icon">▶</span> শুরু
             </button>
-            <button class="btn btn-pause" id="btnPause" disabled title="Pause / Resume">
-                <span class="icon">⏸</span> Pause
+            <button class="btn btn-pause" id="btnPause" disabled title="বিরতি / চালু">
+                <span class="icon">⏸</span> বিরতি
             </button>
-            <button class="btn btn-stop" id="btnStop" disabled title="Stop & Save">
-                <span class="icon">⏹</span> Stop
+            <button class="btn btn-stop" id="btnStop" disabled title="থামান ও সংরক্ষণ">
+                <span class="icon">⏹</span> থামুন
             </button>
-            <button class="btn btn-reset" id="btnReset" title="Clear All">
-                <span class="icon">🔄</span>
+            <button class="btn btn-reset" id="btnReset" title="সব মুছুন">
+                <span class="icon">🔄</span> রিসেট
             </button>
         </div>
     </div>
@@ -463,18 +463,18 @@
             const map = L.map('map', {
                 zoomControl: true,
                 attributionControl: false,
-                zoom: 17,
+                zoom: 7,
                 maxZoom: 21,
-                minZoom: 3,
-            }).setView([23.8103, 90.4125], 14); // Default: Dhaka, Bangladesh (centered-ish)
+                minZoom: 5,
+            }).setView([23.6850, 90.3563], 7); // কেন্দ্র: বাংলাদেশ, জুম লেভেল পুরো দেশ দেখানোর জন্য
 
-            // Tile layer – CartoDB dark for a sleek look
+            // টাইল লেয়ার - ডার্ক মোড
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 21,
                 subdomains: 'abcd',
             }).addTo(map);
 
-            // Custom pane for footprints
+            // কাস্টম পেইন
             map.createPane('footprints');
             map.getPane('footprints').style.zIndex = 500;
             map.getPane('footprints').style.pointerEvents = 'none';
@@ -493,7 +493,7 @@
                 lineJoin: 'round',
             }).addTo(map);
 
-            // Glow trail underneath
+            // গ্লো ট্রেইল
             const glowLine = L.polyline([], {
                 color: '#ff6ec7',
                 weight: 10,
@@ -504,10 +504,10 @@
                 lineJoin: 'round',
             }).addTo(map);
 
-            // Footprint markers (small circles at each recorded point)
+            // ফুটপ্রিন্ট মার্কার
             const footprintMarkers = L.layerGroup().addTo(map);
 
-            // Current location marker (custom divIcon with pulse)
+            // বর্তমান অবস্থানের মার্কার (পালস ইফেক্ট)
             const currentMarker = L.marker([0, 0], {
                 icon: L.divIcon({
                     className: 'pulse-marker',
@@ -516,16 +516,15 @@
                 }),
                 zIndexOffset: 1000,
             });
-            // Don't add to map until we have a position
 
-            // Segment annotation markers (showing distance between points)
+            // সেগমেন্ট অ্যানোটেশন লেয়ার
             const annotationLayer = L.layerGroup().addTo(map);
 
             // ─────────────────────────────────────
-            // HELPER FUNCTIONS
+            // হেল্পার ফাংশন
             // ─────────────────────────────────────
             function haversineDistance(lat1, lng1, lat2, lng2) {
-                const R = 6371000; // Earth radius in meters
+                const R = 6371000; // meters
                 const dLat = (lat2 - lat1) * Math.PI / 180;
                 const dLng = (lng2 - lng1) * Math.PI / 180;
                 const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -536,9 +535,9 @@
             }
 
             function formatDistance(meters) {
-                if (meters < 1) return '0 m';
-                if (meters < 1000) return Math.round(meters) + ' m';
-                return (meters / 1000).toFixed(2) + ' km';
+                if (meters < 1) return '0 মি';
+                if (meters < 1000) return Math.round(meters) + ' মি';
+                return (meters / 1000).toFixed(2) + ' কিমি';
             }
 
             function metersToMiles(meters) {
@@ -568,7 +567,7 @@
                 const elapsed = getElapsedMs();
                 timeVal.textContent = formatTime(elapsed);
 
-                // Speed
+                // গতি
                 if (state.lastPosition && state.lastPosition.speed !== null && state.lastPosition.speed >=
                     0 && state.tracking && !state.paused) {
                     const speedKmh = state.lastPosition.speed * 3.6;
@@ -579,22 +578,22 @@
                     speedMph.textContent = '0.0 mph';
                 }
 
-                // Distance
+                // দূরত্ব
                 distVal.textContent = formatDistance(state.totalDistanceMeters);
-                distMiles.textContent = metersToMiles(state.totalDistanceMeters).toFixed(2) + ' mi';
+                distMiles.textContent = metersToMiles(state.totalDistanceMeters).toFixed(2) + ' মাইল';
 
-                // Segment info (last segment distance)
+                // সেগমেন্ট
                 if (state.segmentDistances.length > 0) {
                     const lastSeg = state.segmentDistances[state.segmentDistances.length - 1];
-                    segmentInfo.textContent = 'Last: ' + formatDistance(lastSeg);
+                    segmentInfo.textContent = 'শেষ: ' + formatDistance(lastSeg);
                 } else {
-                    segmentInfo.textContent = 'Next: --';
+                    segmentInfo.textContent = 'পরবর্তী: --';
                 }
 
-                // Accuracy badge
+                // অ্যাকুরেসি
                 if (state.lastPosition && state.lastPosition.accuracy) {
                     const acc = state.lastPosition.accuracy;
-                    accuracyBadge.textContent = '🎯 ±' + Math.round(acc) + 'm';
+                    accuracyBadge.textContent = '🎯 ±' + Math.round(acc) + 'মি';
                     accuracyBadge.style.color = acc < 10 ? '#2ed573' : acc < 25 ? '#ffa502' : '#ff4757';
                 }
             }
@@ -624,7 +623,6 @@
                     });
                     const annMarker = L.marker([lat, lng], { icon: annIcon, interactive: false, pane: 'footprints' });
                     annotationLayer.addLayer(annMarker);
-                    // Auto-remove annotation after some time
                     setTimeout(() => {
                         annotationLayer.removeLayer(annMarker);
                     }, 8000);
@@ -642,38 +640,33 @@
                 const pos = { lat, lng, timestamp: now, accuracy, speed };
                 state.positions.push(pos);
 
-                // Calculate segment distance
                 if (state.lastPosition && state.tracking && !state.paused) {
                     const segDist = haversineDistance(
                         state.lastPosition.lat, state.lastPosition.lng,
                         lat, lng
                     );
-                    if (segDist > 0.3) { // Only count meaningful movement (>30cm)
+                    if (segDist > 0.3) {
                         state.totalDistanceMeters += segDist;
                         state.segmentDistances.push(segDist);
-                        // Add annotation for this segment
                         const midLat = (state.lastPosition.lat + lat) / 2;
                         const midLng = (state.lastPosition.lng + lng) / 2;
                         const label = formatDistance(segDist);
-                        addFootprintMarker(lat, lng, state.segmentDistances.length === 1 ? '🟢 Start' : label);
+                        addFootprintMarker(lat, lng, state.segmentDistances.length === 1 ? '🟢 শুরু' : label);
                     } else if (state.segmentDistances.length === 0 && state.positions.length === 1) {
-                        // First point
-                        addFootprintMarker(lat, lng, '📍 Start');
+                        addFootprintMarker(lat, lng, '📍 শুরু');
                     }
                 } else if (state.positions.length === 1) {
-                    addFootprintMarker(lat, lng, '📍 Start');
+                    addFootprintMarker(lat, lng, '📍 শুরু');
                 }
 
                 state.lastPosition = pos;
                 updatePathOnMap();
 
-                // Update current marker
                 if (!map.hasLayer(currentMarker)) {
                     currentMarker.addTo(map);
                 }
                 currentMarker.setLatLng([lat, lng]);
 
-                // Recenter map if tracking
                 if (state.tracking && !state.paused) {
                     map.panTo([lat, lng], { animate: true, duration: 0.5, easeLinearity: 0.3 });
                 }
@@ -682,11 +675,11 @@
             }
 
             // ─────────────────────────────────────
-            // GEOLOCATION
+            // জিওলোকেশন
             // ─────────────────────────────────────
             function startWatching() {
                 if (!navigator.geolocation) {
-                    alert('❌ Geolocation is not supported by your browser.');
+                    alert('❌ জিওলোকেশন সাপোর্টেড নয়।');
                     return;
                 }
 
@@ -696,43 +689,38 @@
                         if (state.tracking && !state.paused) {
                             addPosition(latitude, longitude, accuracy, speed);
                         } else if (!state.tracking && state.positions.length === 0) {
-                            // Just show initial position on map before tracking starts
                             state.lastPosition = { lat: latitude, lng: longitude, accuracy, speed, timestamp: Date
-                                .now() };
+                                    .now() };
                             if (!map.hasLayer(currentMarker)) {
                                 currentMarker.addTo(map);
                             }
                             currentMarker.setLatLng([latitude, longitude]);
-                            map.setView([latitude, longitude], 17);
-                            accuracyBadge.textContent = '🎯 ±' + Math.round(accuracy) + 'm';
-                            accuracyBadge.style.color = accuracy < 10 ? '#2ed573' : accuracy < 25 ? '#ffa502' :
-                                '#ff4757';
+                            map.setView([latitude, longitude], 16);
+                            accuracyBadge.textContent = '🎯 ±' + Math.round(accuracy) + 'মি';
                             updateUI();
                         }
-                        // Always update accuracy badge when tracking
                         if (state.tracking && !state.paused) {
                             state.lastPosition = { ...state.lastPosition, accuracy, speed };
                         }
                     },
                     (error) => {
                         console.error('Geolocation error:', error);
-                        let msg = 'Location error: ';
+                        let msg = 'অবস্থান ত্রুটি: ';
                         switch (error.code) {
                             case error.PERMISSION_DENIED:
-                                msg += 'Permission denied. Please allow location access.';
+                                msg += 'অনুমতি প্রত্যাখ্যান।';
                                 break;
                             case error.POSITION_UNAVAILABLE:
-                                msg += 'Position unavailable.';
+                                msg += 'অবস্থান অনুপলব্ধ।';
                                 break;
                             case error.TIMEOUT:
-                                msg += 'Request timed out.';
+                                msg += 'সময় শেষ।';
                                 break;
                             default:
                                 msg += error.message;
                         }
-                        accuracyBadge.textContent = '⚠️ Error';
+                        accuracyBadge.textContent = '⚠️ ত্রুটি';
                         accuracyBadge.style.color = '#ff4757';
-                        alert('⚠️ ' + msg);
                     }, {
                         enableHighAccuracy: true,
                         timeout: 15000,
@@ -749,12 +737,11 @@
             }
 
             // ─────────────────────────────────────
-            // BUTTON HANDLERS
+            // বাটন হ্যান্ডলার
             // ─────────────────────────────────────
             function startTracking() {
-                if (state.tracking && !state.paused) return; // already running
+                if (state.tracking && !state.paused) return;
                 if (state.paused) {
-                    // Resume
                     resumeTracking();
                     return;
                 }
@@ -772,22 +759,15 @@
                 annotationLayer.clearLayers();
                 pathLine.setLatLngs([]);
                 glowLine.setLatLngs([]);
-                if (map.hasLayer(currentMarker)) {
-                    // Keep marker but reset
-                }
 
                 statusDot.classList.add('active');
                 btnStart.disabled = true;
                 btnPause.disabled = false;
                 btnStop.disabled = false;
-                btnStart.textContent = '● Tracking';
-                btnStart.style.background = 'linear-gradient(135deg, #2ed573, #1abc5e)';
-                btnPause.textContent = '⏸ Pause';
-                accuracyBadge.textContent = '🔍 Acquiring...';
+                btnStart.textContent = '● চলছে';
+                accuracyBadge.textContent = '🔍 খোঁজা হচ্ছে...';
                 accuracyBadge.style.color = '#ffa502';
 
-                // If we already have a watch going, positions will flow in
-                // Ensure watch is active
                 if (state.watchId === null) {
                     startWatching();
                 }
@@ -798,15 +778,12 @@
                 if (!state.tracking || state.paused) return;
                 state.paused = true;
                 state.pauseStart = Date.now();
-                state.elapsedBeforePause += Date.now() - (state.pauseStart - (Date.now() - state.pauseStart));
-                // Recalculate properly:
                 state.elapsedBeforePause = getElapsedMs();
-                state.pauseStart = Date.now();
 
                 statusDot.classList.remove('active');
                 statusDot.style.background = '#ffa502';
                 statusDot.style.boxShadow = '0 0 12px #ffa502';
-                btnPause.textContent = '▶ Resume';
+                btnPause.textContent = '▶ চালু';
                 btnStart.disabled = true;
                 speedVal.textContent = '0.0';
                 speedMph.textContent = '0.0 mph';
@@ -817,11 +794,10 @@
                 if (!state.tracking || !state.paused) return;
                 state.paused = false;
                 state.pauseStart = null;
-                // elapsedBeforePause stays as accumulated time
                 statusDot.classList.add('active');
                 statusDot.style.background = '#2ed573';
                 statusDot.style.boxShadow = '0 0 16px #2ed573';
-                btnPause.textContent = '⏸ Pause';
+                btnPause.textContent = '⏸ বিরতি';
                 btnStart.disabled = true;
                 updateUI();
             }
@@ -838,15 +814,13 @@
                 btnStart.disabled = false;
                 btnPause.disabled = true;
                 btnStop.disabled = true;
-                btnStart.textContent = '▶ Start';
-                btnStart.style.background = 'linear-gradient(135deg, #2ed573, #1abc5e)';
-                btnPause.textContent = '⏸ Pause';
+                btnStart.textContent = '▶ শুরু';
+                btnPause.textContent = '⏸ বিরতি';
                 speedVal.textContent = '0.0';
                 speedMph.textContent = '0.0 mph';
-                accuracyBadge.textContent = '⏹ Stopped';
+                accuracyBadge.textContent = '⏹ থামানো';
                 accuracyBadge.style.color = '#ff4757';
                 updateUI();
-                // Keep watch for potential restart, but don't add positions
             }
 
             function resetAll() {
@@ -874,24 +848,22 @@
                 btnStart.disabled = false;
                 btnPause.disabled = true;
                 btnStop.disabled = true;
-                btnStart.textContent = '▶ Start';
-                btnStart.style.background = 'linear-gradient(135deg, #2ed573, #1abc5e)';
-                btnPause.textContent = '⏸ Pause';
+                btnStart.textContent = '▶ শুরু';
+                btnPause.textContent = '⏸ বিরতি';
                 speedVal.textContent = '0.0';
                 speedMph.textContent = '0.0 mph';
-                distVal.textContent = '0 m';
-                distMiles.textContent = '0.00 mi';
+                distVal.textContent = '0 মি';
+                distMiles.textContent = '0.00 মাইল';
                 timeVal.textContent = '00:00';
-                segmentInfo.textContent = 'Next: --';
-                accuracyBadge.textContent = '🔄 Ready';
+                segmentInfo.textContent = 'পরবর্তী: --';
+                accuracyBadge.textContent = '🔄 রিসেট';
                 accuracyBadge.style.color = '#a0a0b8';
-                map.setView([23.8103, 90.4125], 14);
-                // Restart watch for initial position
+                map.setView([23.6850, 90.3563], 7); // রিসেটে বাংলাদেশ ভিউ
                 startWatching();
             }
 
             // ─────────────────────────────────────
-            // EVENT LISTENERS
+            // ইভেন্ট লিসনার
             // ─────────────────────────────────────
             btnStart.addEventListener('click', startTracking);
             btnPause.addEventListener('click', () => {
@@ -905,43 +877,34 @@
             btnReset.addEventListener('click', resetAll);
 
             // ─────────────────────────────────────
-            // TIMER TICK (for UI updates)
+            // টাইমার আপডেট
             // ─────────────────────────────────────
             setInterval(() => {
                 if (state.tracking && !state.paused) {
                     updateUI();
                 }
-                // Also update elapsed time even when paused (time is frozen)
                 if (state.tracking) {
                     timeVal.textContent = formatTime(getElapsedMs());
                 }
             }, 500);
 
             // ─────────────────────────────────────
-            // INIT
+            // শুরু
             // ─────────────────────────────────────
             function init() {
                 statusDot.style.background = '#ff4757';
                 statusDot.style.boxShadow = '0 0 10px #ff4757';
                 btnPause.disabled = true;
                 btnStop.disabled = true;
-                accuracyBadge.textContent = '📍 Ready';
+                accuracyBadge.textContent = '📍 প্রস্তুত';
                 accuracyBadge.style.color = '#a0a0b8';
-                // Start watching for initial position (but not tracking)
                 startWatching();
                 updateUI();
             }
 
             init();
 
-            console.log('🐾 Footprint Tracker ready!');
-            console.log('   - Real-time GPS tracking');
-            console.log('   - Distance in meters & miles');
-            console.log('   - Speed in km/h & mph');
-            console.log('   - Footprint annotations on map');
-            console.log('   - Segment distances between points');
-            console.log('   - Glowing trail & pulse marker');
-            console.log('   Tap "Start" to begin tracking your movement!');
+            console.log('🐾 ফুটপ্রিন্ট ট্র্যাকার (বাংলাদেশ সংস্করণ) প্রস্তুত!');
         })();
     </script>
 </body>
